@@ -1,0 +1,34 @@
+parameters:
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Kernel.php'
+
+    # Product Controllers
+    App\Infrastructure\Product\Http\Api\V1\ProductController:
+        tags: ['controller.service_arguments']
+        public: true
+
+    App\Infrastructure\Controller\Api\HealthcheckController:
+        tags: ['controller.service_arguments']
+        public: true
+
+    # Repository bindings
+    App\Domain\Product\Repository\ProductRepositoryInterface:
+        alias: App\Infrastructure\Product\Persistence\Doctrine\DoctrineProductRepository
+
+    # Application handlers
+    App\Application\Product\Command\CreateProduct\CreateProductCommandHandler:
+        arguments:
+            $productRepository: '@App\Domain\Product\Repository\ProductRepositoryInterface'
+
+    App\Application\Product\Query\GetProduct\GetProductQueryHandler:
+        arguments:
+            $productRepository: '@App\Domain\Product\Repository\ProductRepositoryInterface'

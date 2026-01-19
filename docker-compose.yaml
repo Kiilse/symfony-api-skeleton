@@ -1,0 +1,51 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: symfony_api_php
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html
+    environment:
+      DATABASE_URL: postgresql://symfony:symfony@postgres:5432/symfony_api?serverVersion=16
+      APP_ENV: dev
+      APP_SECRET: ${APP_SECRET:-change-this-secret-key-in-production}
+    depends_on:
+      - postgres
+    networks:
+      - symfony_api
+
+  nginx:
+    image: nginx:alpine
+    container_name: symfony_api_nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - php
+    networks:
+      - symfony_api
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: symfony_api_postgres
+    environment:
+      POSTGRES_DB: symfony_api
+      POSTGRES_USER: symfony
+      POSTGRES_PASSWORD: symfony
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - symfony_api
+
+networks:
+  symfony_api:
+    driver: bridge
+
+volumes:
+  postgres_data:
